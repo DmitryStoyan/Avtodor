@@ -32,6 +32,9 @@ function setupTutorial(scene, engine, createCamera) {
 
         // Добавляем таймер перехода на уровень 2 через 5 секунд
         setTimeout(() => {
+          // Сбрасываем инвентарь перед сменой уровня
+          resetInventory(scene);
+
           engine.stopRenderLoop(); // Остановить текущий рендеринг
 
           const level2Scene = setupLevel2(engine, createCamera); // Настроить уровень 2 и передать createCamera

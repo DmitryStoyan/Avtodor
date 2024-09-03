@@ -40,6 +40,7 @@ function setupInventory(scene, camera) {
   inventoryPanel.verticalAlignment =
     BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
   inventoryPanel.isVisible = false;
+  inventoryPanel.name = "inventoryPanel"; // Установка имени для получения доступа позже
   advancedTexture.addControl(inventoryPanel);
 
   const inventoryHeader = new BABYLON.GUI.TextBlock();
@@ -78,6 +79,11 @@ function setupInventory(scene, camera) {
   window.addEventListener("keydown", function (event) {
     if (event.key === "l" || event.key === "L") {
       inventoryPanel.isVisible = !inventoryPanel.isVisible;
+    }
+
+    // Проверка, открыт ли инвентарь
+    if (!inventoryPanel.isVisible) {
+      return; // Если инвентарь закрыт, выходим из функции
     }
 
     const selectedKey = event.key;
@@ -120,4 +126,24 @@ function setupInventory(scene, camera) {
       );
     }
   });
+
+  // Сброс инвентаря
+  function resetInventory() {
+    console.log("Инвентарь сброшен");
+    window.selectedItem = null; // Сбрасываем выбранный предмет
+
+    const inventoryPanel = advancedTexture.getControlByName("inventoryPanel");
+    if (inventoryPanel) {
+      inventoryPanel.isVisible = false;
+    }
+
+    // Удаляем текущий предмет из рук
+    const oldItem = scene.getMeshByName("selectedItem");
+    if (oldItem) {
+      oldItem.dispose();
+    }
+  }
+
+  // Экспортируем функцию сброса инвентаря
+  window.resetInventory = resetInventory;
 }

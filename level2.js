@@ -1,13 +1,13 @@
 function setupLevel2(engine, createCamera) {
   const scene = new BABYLON.Scene(engine);
 
-  // Черный экран с текстом "Уровень 2"
+  // Создание черного фона и текста "Уровень 2"
   const advancedTexture =
     BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
   const blackBackground = new BABYLON.GUI.Rectangle();
-  blackBackground.width = 1;
-  blackBackground.height = 1;
+  blackBackground.width = "100%";
+  blackBackground.height = "100%";
   blackBackground.background = "black";
   advancedTexture.addControl(blackBackground);
 
@@ -22,6 +22,7 @@ function setupLevel2(engine, createCamera) {
 
   // Задержка перед началом уровня 2
   setTimeout(() => {
+    // Удаление черного фона и текста
     advancedTexture.removeControl(blackBackground);
     advancedTexture.removeControl(levelText);
 
@@ -85,6 +86,8 @@ function setupLevel2(engine, createCamera) {
       }
     );
 
+    let callAnswered = false; // Флаг, указывающий, что звонок уже принят
+
     // Отображение инструкции на экране
     const phoneInstruction = new BABYLON.GUI.TextBlock();
     phoneInstruction.text = "Чтобы ответить на звонок, достаньте телефон";
@@ -97,12 +100,17 @@ function setupLevel2(engine, createCamera) {
       if (
         event.key.toLowerCase() === "f" &&
         window.selectedItem &&
-        window.selectedItem.name === "Телефон"
+        window.selectedItem.name === "Телефон" &&
+        !callAnswered
       ) {
         // Остановить рингтон и воспроизвести сообщение
         ringtoneSound.stop();
         messageSound.play();
         phoneInstruction.text = ""; // Убрать инструкцию
+        callAnswered = true; // Установить флаг принятого звонка
+
+        // Удалить надпись "Нажмите F, чтобы ответить на звонок"
+        advancedTexture.removeControl(phoneInstruction);
 
         // Отобразить новое сообщение после окончания воспроизведения
         messageSound.onEndedObservable.addOnce(() => {
@@ -118,7 +126,11 @@ function setupLevel2(engine, createCamera) {
 
     // Обработчик для отслеживания выбора телефона
     window.addEventListener("keydown", function (event) {
-      if (window.selectedItem && window.selectedItem.name === "Телефон") {
+      if (
+        window.selectedItem &&
+        window.selectedItem.name === "Телефон" &&
+        !callAnswered
+      ) {
         // Телефон выбран, показываем следующую инструкцию
         phoneInstruction.text = "Нажмите F, чтобы ответить на звонок";
       }
