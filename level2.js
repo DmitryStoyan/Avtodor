@@ -32,9 +32,12 @@ function setupLevel2(engine, createCamera) {
     BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
   shelfInstruction.verticalAlignment =
     BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-  shelfInstruction.top = "-100px"; // Отступ от нижней границы экрана, можно настроить
+  shelfInstruction.top = "-100px";
 
   advancedTexture.addControl(shelfInstruction);
+
+  const center = new BABYLON.Vector3(0, 0, 0); // Центр сцены
+  const scale = 1; // Масштаб
 
   // Задержка перед началом уровня 2
   setTimeout(() => {
@@ -50,121 +53,70 @@ function setupLevel2(engine, createCamera) {
     );
     light.intensity = 0.7;
 
-    // Загрузка модели офиса
+    // Создание земли
+    const ground = BABYLON.MeshBuilder.CreateGround(
+      "ground",
+      { width: 100, height: 100 },
+      scene
+    );
+
+    // Применение текстуры к земле
+    const groundMaterial = new BABYLON.StandardMaterial(
+      "groundMaterial",
+      scene
+    );
+    groundMaterial.diffuseTexture = new BABYLON.Texture("./ground.jpg", scene); // Путь к текстуре земли
+    ground.material = groundMaterial;
+    ground.checkCollisions = true; // Земля учитывает столкновения
+
+    // Загрузка модели тумбочки
     BABYLON.SceneLoader.ImportMesh(
       "",
       "./",
-      "office.glb",
+      "file_shelf.glb",
       scene,
-      function (officeMeshes) {
-        // Найти границы модели
-        let min = new BABYLON.Vector3(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY
-        );
-        let max = new BABYLON.Vector3(
-          Number.NEGATIVE_INFINITY,
-          Number.NEGATIVE_INFINITY,
-          Number.NEGATIVE_INFINITY
-        );
+      function (shelfMeshes) {
+        const shelf = shelfMeshes[0];
+        shelf.position = new BABYLON.Vector3(center.x + 10, 0, center.z);
+        shelf.scaling = new BABYLON.Vector3(scale, scale, scale);
+        shelf.checkCollisions = true; // Тумбочка учитывает столкновения
 
-        officeMeshes.forEach((mesh) => {
-          const boundingInfo = mesh.getBoundingInfo();
-          min = BABYLON.Vector3.Minimize(
-            min,
-            boundingInfo.boundingBox.minimumWorld
+        scene.registerBeforeRender(() => {
+          const distance = BABYLON.Vector3.Distance(
+            camera.position,
+            shelf.position
           );
-          max = BABYLON.Vector3.Maximize(
-            max,
-            boundingInfo.boundingBox.maximumWorld
-          );
+          if (distance < 10) {
+            shelfInstruction.isVisible = true;
+          } else {
+            shelfInstruction.isVisible = false;
+          }
         });
 
-        const center = min.add(max).scale(0.5);
-        const size = max.subtract(min);
-
-        // Установка камеры в центр модели
-        camera.position = new BABYLON.Vector3(
-          center.x,
-          center.y + size.y / 2,
-          center.z + size.z * 1.5
-        );
-        camera.setTarget(center);
-
-        // Масштабирование модели
-        const maxSize = Math.max(size.x, size.y, size.z);
-        const scale = 10.0 / maxSize; // Устанавливаем масштаб так, чтобы модель поместилась в сцену
-        officeMeshes.forEach((mesh) => {
-          mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+        window.addEventListener("keydown", function (event) {
+          if (event.key.toLowerCase() === "e" && shelfInstruction.isVisible) {
+            console.log("Документы взяты");
+            shelfInstruction.text = "Документы взяты!";
+            setTimeout(() => (shelfInstruction.isVisible = false), 2000);
+          }
         });
-
-        // Убедиться, что камера не входит в геометрию модели
-        camera.position.y += size.y / 2; // Поднять камеру немного выше, чтобы увидеть модель
-        camera.rotation.x = -0.2; // Немного наклонить камеру вниз, чтобы лучше видеть
-
-        // Загрузка модели тумбочки
-        BABYLON.SceneLoader.ImportMesh(
-          "",
-          "./",
-          "file_shelf.glb",
-          scene,
-          function (shelfMeshes) {
-            const shelf = shelfMeshes[0];
-            shelf.position = new BABYLON.Vector3(
-              center.x + 10,
-              center.y,
-              center.z
-            ); // Разместить тумбочку рядом с офисом
-            shelf.scaling = new BABYLON.Vector3(scale, scale, scale);
-
-            // Отображение надписи при приближении к тумбочке
-            scene.registerBeforeRender(() => {
-              const distance = BABYLON.Vector3.Distance(
-                camera.position,
-                shelf.position
-              );
-              if (distance < 10) {
-                // Порог для отображения инструкции
-                shelfInstruction.isVisible = true;
-              } else {
-                shelfInstruction.isVisible = false;
-              }
-            });
-
-            // Обработка нажатия клавиши 'E'
-            window.addEventListener("keydown", function (event) {
-              if (
-                event.key.toLowerCase() === "e" &&
-                shelfInstruction.isVisible
-              ) {
-                // Логика для взаимодействия с тумбочкой
-                console.log("Документы взяты");
-                // Вы можете добавить здесь дополнительную логику, например, изменить текст на экране или выполнить другие действия
-                shelfInstruction.text = "Документы взяты!";
-                setTimeout(() => (shelfInstruction.isVisible = false), 2000); // Скрыть сообщение через 2 секунды
-              }
-            });
-          }
-        );
-
-        // Загрузка модели NPC (геодезист)
-        BABYLON.SceneLoader.ImportMesh(
-          "",
-          "./",
-          "geodesist.glb",
-          scene,
-          function (npcMeshes) {
-            const npc = npcMeshes[0];
-            npc.position = new BABYLON.Vector3(0, 0, 0); // Начальная позиция NPC
-          }
-        );
       }
     );
 
-    // --- Добавление звонка и логики управления ---
+    // Загрузка модели NPC (геодезист)
+    BABYLON.SceneLoader.ImportMesh(
+      "",
+      "./",
+      "geodesist.glb",
+      scene,
+      function (npcMeshes) {
+        const npc = npcMeshes[0];
+        npc.position = new BABYLON.Vector3(0, 0, 0);
+        npc.checkCollisions = true; // NPC учитывает столкновения
+      }
+    );
 
-    // Создание аудио объектов для рингтона и сообщения
+    // Добавление звонка и логики управления
     const ringtoneSound = new BABYLON.Sound(
       "ringtone",
       "./rington.mp3",
@@ -187,16 +139,14 @@ function setupLevel2(engine, createCamera) {
       }
     );
 
-    let callAnswered = false; // Флаг, указывающий, что звонок уже принят
+    let callAnswered = false;
 
-    // Отображение инструкции на экране
     const phoneInstruction = new BABYLON.GUI.TextBlock();
     phoneInstruction.text = "Чтобы ответить на звонок, достаньте телефон";
     phoneInstruction.color = "white";
     phoneInstruction.fontSize = 24;
     advancedTexture.addControl(phoneInstruction);
 
-    // Обработчик событий для отслеживания выбора телефона и нажатия клавиши F
     window.addEventListener("keydown", function (event) {
       if (
         event.key.toLowerCase() === "f" &&
@@ -204,16 +154,12 @@ function setupLevel2(engine, createCamera) {
         window.selectedItem.name === "Телефон" &&
         !callAnswered
       ) {
-        // Остановить рингтон и воспроизвести сообщение
         ringtoneSound.stop();
         messageSound.play();
-        phoneInstruction.text = ""; // Убрать инструкцию
-        callAnswered = true; // Установить флаг принятого звонка
-
-        // Удалить надпись "Нажмите F, чтобы ответить на звонок"
+        phoneInstruction.text = "";
+        callAnswered = true;
         advancedTexture.removeControl(phoneInstruction);
 
-        // Отобразить новое сообщение после окончания воспроизведения
         messageSound.onEndedObservable.addOnce(() => {
           const nextInstruction = new BABYLON.GUI.TextBlock();
           nextInstruction.text =
@@ -229,7 +175,6 @@ function setupLevel2(engine, createCamera) {
       if (event.key.toLowerCase() === "e" && shelfInstruction.isVisible) {
         console.log("Документы взяты");
 
-        // Добавление документов в инвентарь
         const documents = {
           name: "Документы",
           model: "book.glb",
@@ -244,7 +189,7 @@ function setupLevel2(engine, createCamera) {
         setTimeout(() => (shelfInstruction.isVisible = false), 2000);
       }
     });
-  }, 2000);
+  }, 2000); // Конец задержки перед началом уровня 2
 
   return scene;
 }
