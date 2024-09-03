@@ -39,6 +39,21 @@ function setupLevel2(engine, createCamera) {
   const center = new BABYLON.Vector3(0, 0, 0); // Центр сцены
   const scale = 1; // Масштаб
 
+  // Добавляем текстовый блок для отображения сообщения, что документы уже в инвентаре
+  const documentAlreadyTakenText = new BABYLON.GUI.TextBlock();
+  documentAlreadyTakenText.text = "Документы уже у вас в инвентаре";
+  documentAlreadyTakenText.color = "white";
+  documentAlreadyTakenText.fontSize = 24;
+  documentAlreadyTakenText.isVisible = false;
+  documentAlreadyTakenText.horizontalAlignment =
+    BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+  documentAlreadyTakenText.verticalAlignment =
+    BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+  documentAlreadyTakenText.top = "-150px";
+  advancedTexture.addControl(documentAlreadyTakenText);
+
+  let documentsTaken = false; // Флаг для проверки, были ли взяты документы
+
   // Задержка перед началом уровня 2
   setTimeout(() => {
     // Удаление черного фона и текста
@@ -95,9 +110,28 @@ function setupLevel2(engine, createCamera) {
 
         window.addEventListener("keydown", function (event) {
           if (event.key.toLowerCase() === "e" && shelfInstruction.isVisible) {
-            console.log("Документы взяты");
-            shelfInstruction.text = "Документы взяты!";
-            setTimeout(() => (shelfInstruction.isVisible = false), 2000);
+            if (!documentsTaken) {
+              console.log("Документы взяты");
+
+              const documents = {
+                name: "Документы",
+                model: "book.glb",
+                scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
+                position: new BABYLON.Vector3(0.7, -0.4, 1.3),
+                rotation: new BABYLON.Vector3(0, Math.PI / 2, 0),
+              };
+
+              window.updateInventory(5, documents);
+              documentsTaken = true; // Устанавливаем флаг, что документы взяты
+              shelfInstruction.text = "Документы взяты!";
+              setTimeout(() => (shelfInstruction.isVisible = false), 2000);
+            } else {
+              // Если документы уже взяты, показываем сообщение на 2 секунды
+              documentAlreadyTakenText.isVisible = true;
+              setTimeout(() => {
+                documentAlreadyTakenText.isVisible = false;
+              }, 2000);
+            }
           }
         });
       }
@@ -148,6 +182,15 @@ function setupLevel2(engine, createCamera) {
     advancedTexture.addControl(phoneInstruction);
 
     window.addEventListener("keydown", function (event) {
+      // Проверка, если телефон был выбран и игрок достал его
+      if (
+        window.selectedItem &&
+        window.selectedItem.name === "Телефон" &&
+        !callAnswered
+      ) {
+        phoneInstruction.text = "Нажмите 'F', чтобы ответить на звонок";
+      }
+
       if (
         event.key.toLowerCase() === "f" &&
         window.selectedItem &&
@@ -167,26 +210,12 @@ function setupLevel2(engine, createCamera) {
           nextInstruction.color = "white";
           nextInstruction.fontSize = 24;
           advancedTexture.addControl(nextInstruction);
+
+          // Устанавливаем таймер на 5 секунд для удаления текста
+          setTimeout(() => {
+            advancedTexture.removeControl(nextInstruction);
+          }, 5000); // 5000 миллисекунд = 5 секунд
         });
-      }
-    });
-
-    window.addEventListener("keydown", function (event) {
-      if (event.key.toLowerCase() === "e" && shelfInstruction.isVisible) {
-        console.log("Документы взяты");
-
-        const documents = {
-          name: "Документы",
-          model: "book.glb",
-          scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-          position: new BABYLON.Vector3(0.7, -0.4, 1.3),
-          rotation: new BABYLON.Vector3(0, Math.PI / 2, 0),
-        };
-
-        window.updateInventory(5, documents);
-
-        shelfInstruction.text = "Документы взяты!";
-        setTimeout(() => (shelfInstruction.isVisible = false), 2000);
       }
     });
   }, 2000); // Конец задержки перед началом уровня 2
