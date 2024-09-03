@@ -1,5 +1,3 @@
-window.selectedItem = null;
-
 function setupInventory(scene, camera) {
   const inventoryItems = {
     1: {
@@ -40,7 +38,7 @@ function setupInventory(scene, camera) {
   inventoryPanel.verticalAlignment =
     BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
   inventoryPanel.isVisible = false;
-  inventoryPanel.name = "inventoryPanel"; // Установка имени для получения доступа позже
+  inventoryPanel.name = "inventoryPanel";
   advancedTexture.addControl(inventoryPanel);
 
   const inventoryHeader = new BABYLON.GUI.TextBlock();
@@ -79,11 +77,11 @@ function setupInventory(scene, camera) {
   window.addEventListener("keydown", function (event) {
     if (event.key === "l" || event.key === "L") {
       inventoryPanel.isVisible = !inventoryPanel.isVisible;
+      console.log(inventoryItems);
     }
 
-    // Проверка, открыт ли инвентарь
     if (!inventoryPanel.isVisible) {
-      return; // Если инвентарь закрыт, выходим из функции
+      return;
     }
 
     const selectedKey = event.key;
@@ -146,4 +144,19 @@ function setupInventory(scene, camera) {
 
   // Экспортируем функцию сброса инвентаря
   window.resetInventory = resetInventory;
+
+  window.updateInventory = function (newItemKey, newItem) {
+    inventoryItems[newItemKey] = newItem;
+    const itemSlot = new BABYLON.GUI.TextBlock();
+    itemSlot.text = `${newItemKey}: ${newItem.name}`;
+    itemSlot.height = "30px";
+    itemSlot.color = "white";
+    itemSlot.fontSize = 20;
+    itemSlot.textHorizontalAlignment =
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    itemSlot.paddingLeft = "10px";
+    inventoryPanel.addControl(itemSlot);
+    inventorySlots[newItemKey] = itemSlot;
+    console.log("Инвентарь обновлен", inventoryItems);
+  };
 }

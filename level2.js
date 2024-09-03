@@ -225,18 +225,26 @@ function setupLevel2(engine, createCamera) {
       }
     });
 
-    // Обработчик для отслеживания выбора телефона
     window.addEventListener("keydown", function (event) {
-      if (
-        window.selectedItem &&
-        window.selectedItem.name === "Телефон" &&
-        !callAnswered
-      ) {
-        // Телефон выбран, показываем следующую инструкцию
-        phoneInstruction.text = "Нажмите F, чтобы ответить на звонок";
+      if (event.key.toLowerCase() === "e" && shelfInstruction.isVisible) {
+        console.log("Документы взяты");
+
+        // Добавление документов в инвентарь
+        const documents = {
+          name: "Документы",
+          model: "book.glb",
+          scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
+          position: new BABYLON.Vector3(0.7, -0.4, 1.3),
+          rotation: new BABYLON.Vector3(0, Math.PI / 2, 0),
+        };
+
+        window.updateInventory(5, documents);
+
+        shelfInstruction.text = "Документы взяты!";
+        setTimeout(() => (shelfInstruction.isVisible = false), 2000);
       }
     });
-  }, 2000); // 2 секунды задержки для черного экрана
+  }, 2000);
 
   return scene;
 }
