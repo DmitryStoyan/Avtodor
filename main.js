@@ -2,43 +2,34 @@ window.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("renderCanvas");
   const engine = new BABYLON.Engine(canvas, true);
 
-  // Функция для создания и настройки камеры
-  const createCamera = function (scene) {
+  // Функция создания камеры
+  const createCamera = (scene) => {
     const camera = new BABYLON.UniversalCamera(
-      "camera",
-      new BABYLON.Vector3(0, 1.8, -10),
+      "UniversalCamera",
+      new BABYLON.Vector3(0, 2, -10),
       scene
     );
     camera.attachControl(canvas, true);
+
+    camera.minZ = 0.1;
+    camera.speed = 0.2;
+
     camera.keysUp.push(87); // W
     camera.keysDown.push(83); // S
     camera.keysLeft.push(65); // A
     camera.keysRight.push(68); // D
 
-    // Ограничение высоты камеры, чтобы персонаж не мог летать
-    camera.minZ = 0.1; // Минимальная высота над землей
-    camera.applyGravity = true; // Применение гравитации
-    camera.ellipsoid = new BABYLON.Vector3(1, 1, 1); // Коллизии камеры
-    camera.checkCollisions = true; // Включение коллизий
-
     return camera;
   };
 
-  // Создаем сцену
-  const createScene = function () {
+  // Функция создания сцены
+  const createScene = () => {
     const scene = new BABYLON.Scene(engine);
 
-    // Включение физики
-    scene.enablePhysics(
-      new BABYLON.Vector3(0, -9.81, 0),
-      new BABYLON.CannonJSPlugin()
-    );
-
-    // Создание и настройка камеры
+    // Используем функцию создания камеры
     const camera = createCamera(scene);
-    camera.checkCollisions = true; // Камера учитывает столкновения
-    camera.applyGravity = true; // Камера подвержена гравитации
 
+    // Создание света
     const light = new BABYLON.HemisphericLight(
       "light",
       new BABYLON.Vector3(1, 1, 0),
@@ -46,22 +37,20 @@ window.addEventListener("DOMContentLoaded", function () {
     );
     light.intensity = 0.7;
 
-    // Создание земли
-    const ground = BABYLON.MeshBuilder.CreateGround(
-      "ground",
-      { width: 100, height: 100 },
-      scene
-    );
-    const groundMaterial = new BABYLON.StandardMaterial(
-      "groundMaterial",
-      scene
-    );
-    groundMaterial.diffuseTexture = new BABYLON.Texture(
-      "https://www.babylonjs-playground.com/textures/grass.jpg",
-      scene
-    );
-    ground.material = groundMaterial;
-    ground.checkCollisions = true; // Земля учитывает столкновения
+    // Загрузка модели карты
+    BABYLON.SceneLoader.Append("", "ground.glb", scene, function (scene) {
+      // Включение коллизий для камеры и сцены
+      scene.gravity = new BABYLON.Vector3(0, -0.9, 0);
+      scene.collisionsEnabled = true;
+
+      camera.checkCollisions = true;
+      camera.applyGravity = true;
+
+      // Применение коллизий ко всем мешам в сцене
+      scene.meshes.forEach((mesh) => {
+        mesh.checkCollisions = true;
+      });
+    });
 
     // Загрузка модели персонажа
     BABYLON.SceneLoader.ImportMesh(
@@ -88,7 +77,7 @@ window.addEventListener("DOMContentLoaded", function () {
   const scene = createScene();
 
   // Запуск рендеринга
-  engine.runRenderLoop(function () {
+  engine.runRenderLoop(() => {
     scene.render();
   });
 

@@ -84,6 +84,21 @@ function setupLevel2(engine, createCamera) {
     ground.material = groundMaterial;
     ground.checkCollisions = true; // Земля учитывает столкновения
 
+    // Загрузка модели карты второго уровня
+    BABYLON.SceneLoader.Append("", "trailer_park.glb", scene, function (scene) {
+      // Включение коллизий для камеры и сцены
+      scene.gravity = new BABYLON.Vector3(0, -0.9, 0);
+      scene.collisionsEnabled = true;
+
+      camera.checkCollisions = true;
+      camera.applyGravity = true;
+
+      // Применение коллизий ко всем мешам в сцене
+      scene.meshes.forEach((mesh) => {
+        mesh.checkCollisions = true;
+      });
+    });
+
     // Загрузка модели тумбочки
     BABYLON.SceneLoader.ImportMesh(
       "",
