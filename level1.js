@@ -1,73 +1,134 @@
-function setupTutorial(scene, engine, createCamera) {
-  const advancedTexture =
-    BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+function loadLevel1(scene, camera, onProceedToNextLevel) {
+  // Создаем черный экран для начала обучения
+  const blackScreen = new BABYLON.GUI.Rectangle();
+  blackScreen.width = "100%";
+  blackScreen.height = "100%";
+  blackScreen.background = "black";
 
+  const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+    "UI",
+    true,
+    scene
+  );
+
+  advancedTexture.addControl(blackScreen);
+
+  // Создаем текст для начала обучения
+  const trainingText = new BABYLON.GUI.TextBlock();
+  trainingText.text = "Обучение";
+  trainingText.color = "white";
+  trainingText.fontSize = 36;
+  blackScreen.addControl(trainingText);
+
+  // Удаляем черный экран через 2 секунды
+  setTimeout(() => {
+    blackScreen.dispose(); // Убираем черный экран
+    startLevel(scene, camera, advancedTexture, onProceedToNextLevel); // Начало уровня
+  }, 2000);
+}
+
+function startLevel(scene, camera, advancedTexture, onProceedToNextLevel) {
+  // Инструкция: "Для перемещения используйте клавиши WASD"
   const instructionText = new BABYLON.GUI.TextBlock();
-  instructionText.text = "Обучение";
+  instructionText.text =
+    "Для перемещения используйте клавиши WASD или стрелки на клавиатуре";
   instructionText.color = "white";
-  instructionText.fontSize = 36;
+  instructionText.fontSize = 38;
+  instructionText.verticalAlignment =
+    BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+  instructionText.top = "0%";
   advancedTexture.addControl(instructionText);
 
-  let tutorialStep = 0;
+  // Через 5 секунд сменяем текст на "Чтобы открыть инвентарь, нажмите 'L'"
+  setTimeout(() => {
+    instructionText.text = "Чтобы открыть/закрыть инвентарь, нажмите 'L'";
+  }, 5000);
 
-  const startNextStep = () => {
-    switch (tutorialStep) {
-      case 1:
-        instructionText.text = "Чтобы ходить, используйте клавиши WASD";
-        setTimeout(() => {
-          instructionText.text = "";
-          tutorialStep++;
-          startNextStep();
-        }, 3000);
-        break;
-      case 2:
-        instructionText.text = 'Чтобы открыть инвентарь, нажмите "L"';
-        break;
-      case 3:
-        instructionText.text =
-          "Чтобы взять в руки предмет, нажмите цифру ячейки";
-        break;
-      case 4:
-        instructionText.text = "Обучение пройдено";
+  // Функция для проверки нажатия WASD независимо от раскладки
+  function isMovementKey(event) {
+    const key = event.key.toLowerCase();
+    return (
+      event.code === "KeyW" || // W
+      event.code === "KeyA" || // A
+      event.code === "KeyS" || // S
+      event.code === "KeyD" || // D
+      key === "стрелка вверх" ||
+      key === "стрелка влево" || // Стрелки на русском
+      key === "стрелка вниз" ||
+      key === "стрелка вправо" // Стрелки на русском
+    );
+  }
 
-        // Добавляем таймер перехода на уровень 2 через 5 секунд
-        setTimeout(() => {
-          // Сбрасываем инвентарь перед сменой уровня
-          resetInventory(scene);
+  // Функция для проверки нажатия клавиши 'L'
+  function isInventoryKey(event) {
+    return event.code === "KeyL"; // Работает независимо от раскладки
+  }
 
-          engine.stopRenderLoop(); // Остановить текущий рендеринг
+  // Слушаем нажатие клавиши 'L'
+  window.addEventListener("keydown", function onInventoryOpen(event) {
+    if (isInventoryKey(event)) {
+      instructionText.text =
+        "Чтобы выбрать предмет из инвентаря, используйте цифры на клавиатуре";
 
-          const level2Scene = setupLevel2(engine, createCamera); // Настроить уровень 2 и передать createCamera
+      // После нажатия 'L' удаляем этот обработчик, чтобы он больше не срабатывал
+      window.removeEventListener("keydown", onInventoryOpen);
 
-          // Устанавливаем рендеринг уровня 2 после создания камеры
-          engine.runRenderLoop(() => {
-            level2Scene.render();
+      // Слушаем нажатие цифр на клавиатуре (выбор предмета)
+      window.addEventListener("keydown", function onSelectItem(event) {
+        if (event.key >= "1" && event.key <= "9") {
+          instructionText.text = "Обучение пройдено";
+
+          // Создаем вторую надпись ниже основной
+          const additionalText = new BABYLON.GUI.TextBlock();
+          additionalText.text = "Для начала прохождения уровней нажмите кнопку";
+          additionalText.color = "white";
+          additionalText.fontSize = 24;
+          additionalText.verticalAlignment =
+            BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+          additionalText.top = "20%"; // Расположение ниже первой надписи
+          advancedTexture.addControl(additionalText);
+
+          // Добавляем кнопку "Начать тренажер"
+          const startButton = BABYLON.GUI.Button.CreateSimpleButton(
+            "startButton",
+            "Начать тренажер"
+          );
+          startButton.width = "200px";
+          startButton.height = "60px";
+          startButton.color = "white";
+          startButton.background = "green";
+          startButton.verticalAlignment =
+            BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+          startButton.top = "-10%";
+          advancedTexture.addControl(startButton);
+
+          // Обработчик нажатия кнопки для перехода на следующий уровень
+          startButton.onPointerUpObservable.add(() => {
+            if (onProceedToNextLevel) {
+              onProceedToNextLevel(); // Переход на второй уровень
+            }
           });
 
-          // Вызов setupInventory для настройки инвентаря на уровне 2
-          setupInventory(level2Scene, level2Scene.activeCamera);
-        }, 5000); // 5 секунд
-        break;
-    }
-  };
-
-  tutorialStep = 1;
-  startNextStep();
-
-  window.addEventListener("keydown", function (event) {
-    if (tutorialStep === 2 && (event.key === "l" || event.key === "L")) {
-      instructionText.text = "";
-      tutorialStep++;
-      startNextStep();
+          // Удаляем обработчик после выбора предмета
+          window.removeEventListener("keydown", onSelectItem);
+        }
+      });
     }
   });
 
-  window.addEventListener("keydown", function (event) {
-    const selectedKey = event.key;
-    if (tutorialStep === 3 && ["1", "2", "3", "4"].includes(selectedKey)) {
-      instructionText.text = "";
-      tutorialStep++;
-      startNextStep();
+  // Загрузка карты уровня
+  BABYLON.SceneLoader.Append(
+    "./models/maps/",
+    "level1.glb",
+    scene,
+    function (loadedScene) {
+      loadedScene.meshes.forEach((mesh) => {
+        mesh.checkCollisions = true; // Включаем коллизии для всех мешей
+      });
+
+      // Устанавливаем начальную позицию камеры
+      camera.position = new BABYLON.Vector3(0, 1.2, -10); // Пример позиции камеры
+      camera.setTarget(BABYLON.Vector3.Zero()); // Направляем камеру на центр сцены
     }
-  });
+  );
 }
