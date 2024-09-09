@@ -136,7 +136,7 @@ function loadLevel3(scene, camera) {
       );
       if (distanceToTachometer < 3) {
         if (!isNearTachometer) {
-          displayMessage('Нажмите "E", чтобы проверить точки');
+          displayMessage('Нажимайте "E", чтобы проверять точки');
         }
         isNearTachometer = true;
       } else {
