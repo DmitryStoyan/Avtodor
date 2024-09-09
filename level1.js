@@ -39,10 +39,15 @@ function startLevel(scene, camera, advancedTexture, onProceedToNextLevel) {
   instructionText.top = "0%";
   advancedTexture.addControl(instructionText);
 
-  // Через 5 секунд сменяем текст на "Чтобы открыть инвентарь, нажмите 'L'"
+  // Через 3 секунды сменяем текст на "Чтобы осмотреться, зажмите 'ЛКМ'"
+  setTimeout(() => {
+    instructionText.text = "Чтобы осмотреться, зажмите 'ЛКМ'";
+  }, 3000);
+
+  // Через 6 секунд сменяем текст на "Чтобы открыть/закрыть инвентарь, нажмите 'L'"
   setTimeout(() => {
     instructionText.text = "Чтобы открыть/закрыть инвентарь, нажмите 'L'";
-  }, 5000);
+  }, 6000);
 
   // Функция для проверки нажатия WASD независимо от раскладки
   function isMovementKey(event) {

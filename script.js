@@ -1,39 +1,4 @@
 function setupInventory(scene, camera) {
-  globalInventoryItems = globalInventoryItems || {
-    1: {
-      name: "Телефон",
-      model: "./models/inventory/phone.glb",
-      scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-      position: new BABYLON.Vector3(0.7, -0.4, 1),
-      rotation: new BABYLON.Vector3(0, Math.PI, 0),
-    },
-    2: {
-      name: "Фонарик",
-      model: "./models/inventory/flashlight.glb",
-      scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-      position: new BABYLON.Vector3(0.7, -0.4, 1),
-    },
-    3: {
-      name: "Бутылка воды",
-      model: "./models/inventory/water.glb",
-      scaling: new BABYLON.Vector3(0.06, 0.06, 0.06),
-      position: new BABYLON.Vector3(0.7, -0.4, 1.3),
-    },
-    4: {
-      name: "Бутерброд",
-      model: "./models/inventory/sandwich.glb",
-      scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-      position: new BABYLON.Vector3(0.7, -0.4, 2),
-    },
-    5: {
-      name: " Old Телефон",
-      model: "./models/inventory/old_phone.glb",
-      scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-      position: new BABYLON.Vector3(0.7, -0.4, 1),
-      rotation: new BABYLON.Vector3(0, Math.PI, 0),
-    },
-  };
-
   const advancedTexture =
     BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 

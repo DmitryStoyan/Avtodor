@@ -7,6 +7,16 @@ function loadLevel3(scene, camera) {
   let pointsChecked = 0;
   let messageTimeout = null;
 
+  // Задаем границы карты
+  const mapBounds = {
+    minX: -50,
+    maxX: 50,
+    minY: 1.5, // Чтобы камера не уходила под землю
+    maxY: 10, // Ограничение по высоте
+    minZ: -50,
+    maxZ: 50,
+  };
+
   // Загрузка локации
   BABYLON.SceneLoader.Append(
     "./models/maps/",
@@ -14,8 +24,8 @@ function loadLevel3(scene, camera) {
     scene,
     function (loadedScene) {
       loadedScene.meshes.forEach((mesh) => (mesh.checkCollisions = true));
-      camera.position = new BABYLON.Vector3(3, 1.7, -1);
-      camera.setTarget(new BABYLON.Vector3(0, 0, 50));
+      camera.position = new BABYLON.Vector3(7, 1.7, -6);
+      camera.setTarget(new BABYLON.Vector3(-30, 0, 50));
       displayMessage("Передайте документы геодезисту");
 
       BABYLON.SceneLoader.ImportMesh(
@@ -45,6 +55,27 @@ function loadLevel3(scene, camera) {
     BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
   instructionText.top = "-10%";
   advancedTexture.addControl(instructionText);
+
+  // Создаем черный экран
+  const blackScreen = new BABYLON.GUI.Rectangle();
+  blackScreen.background = "black";
+  blackScreen.alpha = 0;
+  blackScreen.width = 1;
+  blackScreen.height = 1;
+  blackScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+  blackScreen.horizontalAlignment =
+    BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+  advancedTexture.addControl(blackScreen);
+
+  // Текст "Тренажер пройден"
+  const completionText = new BABYLON.GUI.TextBlock();
+  completionText.text = "Тренажер пройден";
+  completionText.color = "white";
+  completionText.fontSize = 60;
+  completionText.alpha = 0;
+  completionText.verticalAlignment =
+    BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+  advancedTexture.addControl(completionText);
 
   function displayMessage(text, duration = 0) {
     instructionText.text = text;
@@ -115,6 +146,20 @@ function loadLevel3(scene, camera) {
         isNearTachometer = false;
       }
     }
+
+    // Ограничение движения камеры внутри границ карты
+    camera.position.x = Math.max(
+      mapBounds.minX,
+      Math.min(camera.position.x, mapBounds.maxX)
+    );
+    camera.position.y = Math.max(
+      mapBounds.minY,
+      Math.min(camera.position.y, mapBounds.maxY)
+    );
+    camera.position.z = Math.max(
+      mapBounds.minZ,
+      Math.min(camera.position.z, mapBounds.maxZ)
+    );
   });
 
   window.addEventListener("keydown", function (event) {
@@ -128,11 +173,18 @@ function loadLevel3(scene, camera) {
         } else {
           documentDelivered = true;
           displayMessage("Вы передали документы", 2000);
+
+          // Удаляем документы из инвентаря
           delete globalInventoryItems[5];
           const oldItem = scene.getMeshByName("selectedItem");
           if (oldItem) oldItem.dispose();
           window.selectedItem = null;
           window.updateInventory();
+
+          // После передачи документов выводим новое сообщение
+          setTimeout(() => {
+            displayMessage("Измерьте показания на тахеометре", 2000);
+          }, 2000); // Пауза перед выводом сообщения
         }
       }
 
@@ -174,8 +226,10 @@ function loadLevel3(scene, camera) {
         // Симуляция исправления отклоненной точки
         setTimeout(() => {
           displayMessage("");
-          isFixingPoint = false;
-          currentPointIndex++; // Двигаемся вперед после исправления точки
+
+          // Показываем черный экран и текст "Тренажер пройден"
+          blackScreen.alpha = 1;
+          completionText.alpha = 1;
         }, 3000);
       }
     }

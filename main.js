@@ -1,16 +1,16 @@
 let globalInventoryItems = {
   1: {
     name: "Телефон",
-    model: "./models/inventory/phone.glb",
-    scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-    position: new BABYLON.Vector3(0.7, -0.4, 1),
+    model: "./models/inventory/iphone_16.glb",
+    scaling: new BABYLON.Vector3(0.8, 0.8, -0.8),
+    position: new BABYLON.Vector3(0.8, -0.25, 1),
     rotation: new BABYLON.Vector3(0, Math.PI, 0),
   },
   2: {
     name: "Фонарик",
     model: "./models/inventory/flashlight.glb",
-    scaling: new BABYLON.Vector3(0.2, 0.2, 0.2),
-    position: new BABYLON.Vector3(0.7, -0.4, 1),
+    scaling: new BABYLON.Vector3(0.1, 0.1, 0.1),
+    position: new BABYLON.Vector3(0.55, -0.3, 1),
   },
   3: {
     name: "Бутылка воды",
@@ -19,11 +19,11 @@ let globalInventoryItems = {
     position: new BABYLON.Vector3(0.7, -0.4, 1.3),
   },
   4: {
-    name: " Old Телефон",
-    model: "./models/inventory/old_phone.glb",
-    scaling: new BABYLON.Vector3(0.025, 0.025, -0.025),
-    position: new BABYLON.Vector3(0.6, -0.15, 1),
-    rotation: new BABYLON.Vector3(0, -29.8, 30),
+    name: " Молоток",
+    model: "./models/inventory/hammer.glb",
+    scaling: new BABYLON.Vector3(0.05, 0.05, 0.05),
+    position: new BABYLON.Vector3(0.6, -0.4, 1),
+    rotation: new BABYLON.Vector3(0, 30, 0),
   },
 }; // Глобальный инвентарь
 
@@ -41,8 +41,21 @@ window.addEventListener("DOMContentLoaded", function () {
       new BABYLON.Vector3(0, 2, -10),
       scene
     );
+
+    // Привязываем управление камерой к canvas
     camera.attachControl(canvas, true);
 
+    // Отключаем нажатие кнопки мыши для вращения камеры, чтобы вращать её при движении мыши
+    camera.inputs.remove(camera.inputs.attached.mouse); // Удаляем стандартное управление мышью
+    const customMouseInput = new BABYLON.FreeCameraMouseInput();
+
+    // Настройка чувствительности камеры
+    customMouseInput.angularSensibility = 2000;
+
+    // Привязываем камере новый обработчик движения мыши
+    camera.inputs.add(customMouseInput);
+
+    // Настройка управления для передвижения
     camera.minZ = 0.1;
     camera.speed = 0.2;
 
@@ -50,7 +63,7 @@ window.addEventListener("DOMContentLoaded", function () {
     camera.applyGravity = true;
     camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
 
-    // Управление на английской раскладке
+    // Управление с помощью клавиш WASD
     camera.keysUp.push(87); // W
     camera.keysDown.push(83); // S
     camera.keysLeft.push(65); // A
